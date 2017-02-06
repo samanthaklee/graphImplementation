@@ -1,0 +1,202 @@
+//PA 1 
+//SAMANTHA LEE, 10/19/2016
+
+// FILE: graph.template (part of the namespace main_savitch_15)
+// TEMPLATE CLASS IMPLEMENTED: graph<Item> (See graph.h for documentation.)
+// This file is included in the header file and not compiled separately.
+// INVARIANT for the graph class:
+//   1. The number of vertices in the graph is stored in the member variable
+//      many_vertices.
+//   1. These vertices are numbered from 0 to many_vertices-1.
+//   2. edges is the adjacency matrix for the graph (with true in edges[i][j]
+//      to indicate an edge from vertex i to vertex j).
+//   3. For each i < many_vertices, labels[i] is the label of vertex i.
+
+#include <cassert>    // Provides assert
+#include <cstdlib>    // Provides size_t
+#include <set>        // Provides set
+#include <algorithm>  
+
+namespace main_savitch_15
+{
+    template<class Item>
+    graph<Item>::graph() {
+        many_vertices = 0;
+        allocated = 10;
+        labels = new Item[allocated];
+        edges = new bool*[allocated];
+        for (int i = 0; i < allocated; i++) {
+            edges[i] = new bool[allocated];        
+        }  
+    }
+    
+    template<class Item>
+    graph<Item>::graph(std::size_t initial_allocation){
+        allocated = initial_allocation;
+        many_vertices = 0;
+        labels = new Item[initial_allocation];
+        edges = new bool*[initial_allocation];
+        for (int i = 0; i < allocated; i++) {
+            edges[i] = new bool[initial_allocation];        
+        }
+    }
+
+    template<class Item>
+    graph<Item>::graph(const graph<Item> &source){
+        many_vertices = source.many_vertices;
+        allocated = source.allocated;
+        labels = new Item[source.allocated];
+        edges = new bool*[source.allocated];
+        std::copy(source.labels, source.labels + many_vertices, labels);
+        for (int i = 0; i < source.allocated; i++) {
+            edges[i] = new bool[source.allocated];
+            labels[i] = source.labels[i];
+            std::copy(source.edges[i], source.edges[i] + allocated, edges[i]);
+        }
+    }
+
+  //assignment operator 
+ //set labels equal to the source 
+   template<class Item>
+   graph<Item>& graph<Item>::operator=(const main_savitch_15::graph<Item> &source){
+          if (this == &source) {
+            return *this;
+        }
+        allocated = source.allocated;
+        many_vertices = source.many_vertices;
+        if (source.labels){
+            labels = new Item[source.allocated];
+            for(int j = 0; j < allocated; j++){
+               labels[j] = source.labels[j];
+            }
+       }
+       if (source.edges) {
+            edges = new bool*[source.allocated];
+            for(int i = 0; i < this->allocated; i++){
+              edges[i] = new bool[this->allocated];
+        }
+        for (int i = 0; i < allocated; i++) {
+            for (int j = 0; j < allocated; j++) {
+            edges[i][j] = source.edges[i][j];
+         }
+        }
+     }
+        return *this;
+    }
+
+    //destructor
+    template<class Item> 
+    graph<Item>::~graph() {
+    
+        delete [] edges;
+        delete [] labels;
+    }
+         //resize function 
+    template<class Item>
+    void graph<Item>::resize(std::size_t new_allocation){
+        if (new_allocation <= allocated)
+            return;
+        else {
+            Item *tmp_labels = new Item[new_allocation];
+            bool **tmp_edges = new bool*[new_allocation];
+            for (int i = 0; i < new_allocation; i++) {
+                tmp_edges[i] = new bool[new_allocation]; 
+                }
+            for(int i = 0; i < this->allocated; i++){
+                tmp_labels[i] = this->labels[i]; 
+                for (int j = 0; j < this->allocated; j++) {
+                    tmp_edges[i][j] = edges[i][j]; 
+                }
+            }
+            delete [] labels;
+            delete [] edges;
+            labels = tmp_labels;
+            edges = tmp_edges;
+            this->allocated = new_allocation;
+       }
+     }  
+
+
+    template <class Item>
+    void graph<Item>::add_edge(std::size_t source, std::size_t target)
+    // Library facilities used: cassert, cstdlib
+    {
+
+//        assert(source < size( ));
+  //      assert(target < size( ));
+        edges[source][target] = true;
+    }
+
+    template <class Item>
+    void main_savitch_15::graph<Item>::add_vertex(const Item& label)
+    // Library facilities used: cassert, cstdlib
+    {
+        std::size_t new_vertex_number;
+        std::size_t other_number;
+
+        new_vertex_number = many_vertices;
+        many_vertices++;
+        if (allocated < many_vertices) {
+            this->resize(many_vertices);
+        }
+        for (other_number = 0; other_number < many_vertices; ++other_number)
+        {
+            edges[other_number][new_vertex_number] = false;
+            edges[new_vertex_number][other_number] = false;
+        }
+        labels[new_vertex_number] = label;
+    }
+
+    template <class Item>
+    bool main_savitch_15::graph<Item>::is_edge(std::size_t source, std::size_t target) const
+    // Library facilities used: cassert, cstdlib
+    {
+      //  assert(source < size( ));
+      //  assert(target < size( ));
+        return edges[source][target];
+    }
+
+    template <class Item>
+    Item& main_savitch_15::graph<Item>::operator[ ] (std::size_t vertex)
+    // Library facilities used: cassert, cstdlib
+    {
+        //assert(vertex < size( ));
+        return labels[vertex];     // Returns a reference to the label
+    }
+
+    template <class Item>
+    Item main_savitch_15::graph<Item>::operator[ ] (std::size_t vertex) const
+    // Library facilities used: cassert, cstdlib
+    {
+     //   assert(vertex < size( ));
+        return labels[vertex];     // Returns only a copy of the label
+    }
+
+    template <class Item>
+    std::set<std::size_t> main_savitch_15::graph<Item>::neighbors(std::size_t vertex) const
+    // Library facilities used: cassert, cstdlib, set
+    {
+        std::set<std::size_t> answer;
+        std::size_t i;
+
+      //  assert(vertex < size( ));
+
+        for (i = 0; i < size( ); ++i)
+        {
+            if (edges[vertex][i])
+                answer.insert(i);
+        }
+        return answer;
+    }
+
+    template <class Item>
+    void main_savitch_15::graph<Item>::remove_edge(std::size_t source, std::size_t target)
+    // Library facilities used: cassert, cstdlib
+    {
+       // assert(source < size( ));
+       // assert(target < size( ));
+        edges[source][target] = false;
+    }
+}
+	
+    
